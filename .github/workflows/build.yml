@@ -1,0 +1,70 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate icon
+        run: node scripts/generate-icon.js
+
+      - name: Build Windows installer
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "TAG=v$version-build${{ github.run_number }}" >> $env:GITHUB_OUTPUT
+
+      - name: Find installer file
+        id: find_exe
+        run: |
+          $file = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
+          echo "EXE_PATH=$($file.FullName)" >> $env:GITHUB_OUTPUT
+          echo "EXE_NAME=$($file.Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: "Migration GotoWin to HOSxP ${{ steps.version.outputs.TAG }}"
+          body: |
+            ## ดาวน์โหลด
+            คลิกที่ไฟล์ `.exe` ด้านล่างเพื่อดาวน์โหลด
+
+            ## การติดตั้ง
+            1. ดาวน์โหลดไฟล์ `.exe`
+            2. ดับเบิลคลิกเพื่อติดตั้ง
+            3. เปิดโปรแกรมจาก Desktop shortcut
+            4. โปรแกรมจะเปิด browser ที่ http://localhost:3004 อัตโนมัติ
+
+            ## หมายเหตุ
+            - ไม่ต้องติดตั้ง Node.js แยก
+            - โปรแกรมทำงานใน System Tray (มุมขวาล่าง)
+            - คลิกขวาที่ icon เพื่อเปิดโปรแกรมหรือปิด
+          files: dist/*.exe
+          draft: false
+          prerelease: false

@@ -1,10 +1,13 @@
 {
-  "name": "pdf-to-jpeg-migrator",
+  "name": "migretion-gotowin-to-hosxp",
   "version": "1.0.0",
-  "description": "ระบบโอนข้อมูล PDF เป็น JPEG จาก MySQL ไป PostgreSQL/MySQL",
-  "main": "server.js",
+  "description": "ระบบโอนข้อมูล PDF เป็น JPEG จาก MySQL (gotowin) ไป PostgreSQL/MySQL (HOSxP)",
+  "main": "electron-main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "electron": "electron .",
+    "build": "electron-builder --win --x64",
+    "postinstall": "node scripts/generate-icon.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -15,5 +18,44 @@
     "pdfjs-dist": "^3.11.174",
     "@napi-rs/canvas": "^0.1.53",
     "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.hosxp.migration",
+    "productName": "Migration GotoWin to HOSxP",
+    "copyright": "HOSxP Migration Tool",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Migration GotoWin HOSxP",
+      "installerLanguages": ["th"],
+      "language": "1054"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!.github/**",
+      "!scripts/**",
+      "!logs/**",
+      "!*.md",
+      "!db_config.json"
+    ],
+    "extraResources": [
+      { "from": "assets/icon.png", "to": "icon.png" }
+    ],
+    "asar": true
   }
 }
