@@ -1,0 +1,18 @@
+{
+  "source": {
+    "host": "192.168.1.100",
+    "port": "3306",
+    "database": "gotowin_db",
+    "user": "root",
+    "password": ""
+  },
+  "target": {
+    "dbType": "postgresql",
+    "host": "192.168.1.101",
+    "port": "5432",
+    "database": "hosxp_db",
+    "user": "postgres",
+    "password": ""
+  },
+  "yearQueries": {}
+}
