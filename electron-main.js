@@ -129,4 +129,10 @@ app.on('second-instance', () => {
 process.on('uncaughtException', (e) => {
   log(`Uncaught: ${e.message}\n${e.stack}`);
   dialog.showErrorBox('Uncaught Error', `${e.message}\n\nLog: ${logFile}`);
+  process.exit(1);
+});
+
+app.on('before-quit', () => {
+  log('App quitting...');
+  setTimeout(() => process.exit(0), 500);
 });
