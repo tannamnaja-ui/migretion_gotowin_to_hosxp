@@ -7,8 +7,12 @@ const fs = require('fs');
 const path = require('path');
 const { convertPdfToJpeg } = require('../utils/converter');
 
-const CONFIG_FILE = path.join(__dirname, '..', 'db_config.json');
-const LOG_DIR = path.join(__dirname, '..', 'logs');
+const CONFIG_FILE = process.env.APP_DATA_DIR
+  ? path.join(process.env.APP_DATA_DIR, 'db_config.json')
+  : path.join(__dirname, '..', 'db_config.json');
+const LOG_DIR = process.env.APP_DATA_DIR
+  ? path.join(process.env.APP_DATA_DIR, 'logs')
+  : path.join(__dirname, '..', 'logs');
 
 // =============================================
 // Year-specific configurations

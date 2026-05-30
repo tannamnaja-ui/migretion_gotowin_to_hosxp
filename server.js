@@ -3,7 +3,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
-const LOG_DIR = path.join(__dirname, 'logs');
+const LOG_DIR = process.env.APP_DATA_DIR
+  ? path.join(process.env.APP_DATA_DIR, 'logs')
+  : path.join(__dirname, 'logs');
 
 const app = express();
 const PORT = 3004;

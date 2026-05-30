@@ -5,7 +5,10 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-const CONFIG_FILE = path.join(__dirname, '..', 'db_config.json');
+// ใน packaged app เก็บ config ใน userData, ไม่งั้นใช้ project root
+const CONFIG_FILE = process.env.APP_DATA_DIR
+  ? path.join(process.env.APP_DATA_DIR, 'db_config.json')
+  : path.join(__dirname, '..', 'db_config.json');
 
 function loadConfig() {
   if (fs.existsSync(CONFIG_FILE)) {

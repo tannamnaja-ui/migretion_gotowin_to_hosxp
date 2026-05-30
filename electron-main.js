@@ -6,13 +6,13 @@ const http = require('http');
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); process.exit(0); }
 
-let tray = null;
 const PORT = 3004;
 
-// Set working directory to app root (สำหรับ packaged app)
-if (app.isPackaged) {
-  process.chdir(path.join(process.resourcesPath, 'app'));
-}
+// กำหนด data directory (writable) สำหรับ config และ logs
+const dataDir = app.getPath('userData');
+process.env.APP_DATA_DIR = dataDir;
+
+let tray = null;
 
 function waitForServer(callback, retries = 30) {
   http.get(`http://localhost:${PORT}`, () => {
@@ -53,7 +53,7 @@ function createTray() {
         type: 'info',
         title: 'Migration GotoWin to HOSxP',
         message: 'PDF → JPEG Migration Tool',
-        detail: `Port: ${PORT}\nVersion: 1.0.0`
+        detail: `Port: ${PORT}\nVersion: 1.0.0\nData: ${dataDir}`
       })
     },
     { type: 'separator' },
@@ -68,17 +68,14 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
-  // ซ่อน dock icon (macOS)
   app.dock && app.dock.hide();
-
-  // สร้าง tray
   createTray();
 
   // Start Express server
   try {
     require('./server.js');
   } catch (e) {
-    dialog.showErrorBox('เกิดข้อผิดพลาด', `ไม่สามารถเริ่ม server ได้:\n${e.message}`);
+    dialog.showErrorBox('เกิดข้อผิดพลาด', `ไม่สามารถเริ่ม server ได้:\n${e.message}\n\n${e.stack}`);
     app.quit();
     return;
   }
@@ -90,10 +87,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // ไม่ปิด app เมื่อปิด window — ทำงานต่อใน system tray
+  // ไม่ปิด app — ทำงานต่อใน system tray
 });
 
 app.on('second-instance', () => {
-  // ถ้าเปิดซ้ำ ให้เปิด browser แทน
   shell.openExternal(`http://localhost:${PORT}`);
 });
