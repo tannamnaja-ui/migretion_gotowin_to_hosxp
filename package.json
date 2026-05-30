@@ -44,6 +44,7 @@
       "installerLanguages": ["th"],
       "language": "1054"
     },
+    "npmRebuild": false,
     "files": [
       "**/*",
       "!dist/**",
@@ -51,11 +52,16 @@
       "!scripts/**",
       "!logs/**",
       "!*.md",
-      "!db_config.json"
+      "!db_config.json",
+      "!node_modules/canvas/build/**"
     ],
     "extraResources": [
       { "from": "assets/icon.png", "to": "icon.png" }
     ],
-    "asar": true
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@napi-rs/canvas/**",
+      "node_modules/canvas/**"
+    ]
   }
 }

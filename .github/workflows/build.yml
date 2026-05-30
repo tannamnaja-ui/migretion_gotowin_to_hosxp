@@ -21,50 +21,59 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies (skip postinstall temporarily)
+        run: npm install --ignore-scripts
 
       - name: Generate icon
         run: node scripts/generate-icon.js
+
+      - name: Create canvas shim (ป้องกัน electron-builder compile)
+        shell: pwsh
+        run: |
+          $canvasDir = "node_modules\canvas"
+          if (-not (Test-Path $canvasDir)) {
+            New-Item -ItemType Directory -Path $canvasDir -Force | Out-Null
+          }
+          Set-Content "$canvasDir\index.js" "module.exports = require('@napi-rs/canvas');"
+          Set-Content "$canvasDir\package.json" '{"name":"canvas","version":"2.11.2","main":"index.js","gypfile":false}'
+          Write-Output "Canvas shim created"
 
       - name: Build Windows installer
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version
-        id: version
+      - name: Get build info
+        id: info
+        shell: pwsh
         run: |
           $version = (Get-Content package.json | ConvertFrom-Json).version
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "TAG=v$version-build${{ github.run_number }}" >> $env:GITHUB_OUTPUT
-
-      - name: Find installer file
-        id: find_exe
-        run: |
-          $file = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
-          echo "EXE_PATH=$($file.FullName)" >> $env:GITHUB_OUTPUT
-          echo "EXE_NAME=$($file.Name)" >> $env:GITHUB_OUTPUT
+          $tag = "v$version-build${{ github.run_number }}"
+          $exe = Get-ChildItem -Path dist -Filter "*.exe" -Recurse | Select-Object -First 1
+          echo "TAG=$tag" >> $env:GITHUB_OUTPUT
+          echo "EXE_PATH=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          echo "EXE_NAME=$($exe.Name)" >> $env:GITHUB_OUTPUT
+          echo "Found: $($exe.FullName)"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.TAG }}
-          name: "Migration GotoWin to HOSxP ${{ steps.version.outputs.TAG }}"
+          tag_name: ${{ steps.info.outputs.TAG }}
+          name: "Migration GotoWin to HOSxP ${{ steps.info.outputs.TAG }}"
           body: |
-            ## ดาวน์โหลด
-            คลิกที่ไฟล์ `.exe` ด้านล่างเพื่อดาวน์โหลด
+            ## ⬇️ ดาวน์โหลด
+            คลิกที่ไฟล์ **`${{ steps.info.outputs.EXE_NAME }}`** ด้านล่าง
 
-            ## การติดตั้ง
+            ## 📋 วิธีติดตั้ง
             1. ดาวน์โหลดไฟล์ `.exe`
-            2. ดับเบิลคลิกเพื่อติดตั้ง
-            3. เปิดโปรแกรมจาก Desktop shortcut
-            4. โปรแกรมจะเปิด browser ที่ http://localhost:3004 อัตโนมัติ
+            2. ดับเบิลคลิกเพื่อติดตั้ง (ไม่ต้องใช้ internet)
+            3. เปิดจาก Desktop shortcut หรือ Start Menu
+            4. โปรแกรมเปิด browser ที่ http://localhost:3004 อัตโนมัติ
 
-            ## หมายเหตุ
+            ## ℹ️ หมายเหตุ
             - ไม่ต้องติดตั้ง Node.js แยก
-            - โปรแกรมทำงานใน System Tray (มุมขวาล่าง)
-            - คลิกขวาที่ icon เพื่อเปิดโปรแกรมหรือปิด
-          files: dist/*.exe
+            - ทำงานใน System Tray (มุมขวาล่าง)
+            - คลิกขวาที่ icon → เปิดโปรแกรม / ปิดโปรแกรม
+          files: dist/**/*.exe
           draft: false
           prerelease: false
