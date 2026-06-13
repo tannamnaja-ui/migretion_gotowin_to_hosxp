@@ -22,6 +22,7 @@ app.set('progressStore', progressStore);
 // Routes
 app.use('/api/database', require('./routes/database'));
 app.use('/api/transfer', require('./routes/transfer'));
+app.use('/api/transfer-ipd', require('./routes/transfer-ipd'));
 
 // SSE endpoint for real-time transfer progress
 app.get('/api/progress/:jobId', (req, res) => {

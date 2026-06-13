@@ -28,6 +28,50 @@ body {
 .header-icon { font-size: 48px; }
 .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
 .header p { font-size: 17px; opacity: 0.85; }
+.header-back {
+  font-size: 26px;
+  color: white;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.2s;
+  line-height: 1;
+}
+.header-back:hover { background: rgba(255,255,255,0.22); }
+
+/* Home Menu */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  padding: 40px 0;
+}
+.menu-box {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08), 0 2px 16px rgba(0,0,0,0.05);
+  padding: 56px 32px;
+  text-align: center;
+  text-decoration: none;
+  color: #1e293b;
+  border: 2px solid transparent;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.menu-box:hover { transform: translateY(-6px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
+.menu-box-icon { font-size: 64px; }
+.menu-box h2 { font-size: 24px; font-weight: 700; }
+.menu-box p { font-size: 16px; color: #64748b; line-height: 1.6; }
+.menu-box-opd:hover { border-color: #2563eb; }
+.menu-box-ipd:hover { border-color: #16a34a; }
+
+@media (max-width: 800px) {
+  .menu-grid { grid-template-columns: 1fr; }
+}
 
 /* Container */
 .container {

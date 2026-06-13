@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบโอนข้อมูล PDF → JPEG (IPD)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="header-back" title="กลับหน้าเมนูหลัก">←</a>
+      <div class="header-icon">🛏️</div>
+      <div>
+        <h1>ระบบโอนข้อมูล PDF → JPEG (IPD)</h1>
+        <p>โอนข้อมูลรูปภาพจาก MySQL (PDF) ไปยัง PostgreSQL/MySQL (JPEG)</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- DB Config Section (รวมการ์ดเดียว) -->
+    <div class="card">
+      <div class="card-header db-combined-header" onclick="toggleDbConfig()" style="cursor:pointer">
+        <span class="card-icon">🗄️</span>
+        <h2>ตั้งค่าการเชื่อมต่อฐานข้อมูล</h2>
+        <button class="btn-toggle" id="dbConfigToggle">▼ ซ่อน</button>
+      </div>
+      <div class="db-combined-body" id="dbConfigBody">
+
+        <!-- Source -->
+        <div class="db-side source-side">
+          <div class="db-side-title source-side-title">
+            🔵 ต้นทาง (Source)
+            <span class="badge badge-mysql">MySQL</span>
+          </div>
+          <div class="db-fields">
+            <div class="form-row">
+              <div class="form-group">
+                <label>IP Server</label>
+                <input type="text" id="src-host" placeholder="192.168.1.100" value="127.0.0.1">
+              </div>
+              <div class="form-group w-small">
+                <label>Port</label>
+                <input type="number" id="src-port" placeholder="3306" value="3306">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Database</label>
+              <input type="text" id="src-database" placeholder="gotowin_db">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="src-user" placeholder="root">
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="src-password" placeholder="••••••••">
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-outline" onclick="testSource()">
+                <span class="btn-icon">🔌</span> ทดสอบ
+              </button>
+              <button class="btn btn-primary" onclick="saveSource()">
+                <span class="btn-icon">💾</span> บันทึก
+              </button>
+            </div>
+            <div id="src-msg" class="msg-box"></div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="db-divider">
+          <div class="db-divider-arrow">→</div>
+        </div>
+
+        <!-- Target -->
+        <div class="db-side target-side">
+          <div class="db-side-title target-side-title">
+            🟢 ปลายทาง (Target)
+          </div>
+          <div class="db-fields">
+            <div class="form-group">
+              <label>ประเภทฐานข้อมูล</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="tgt-dbtype" value="postgresql" checked onchange="updateTargetPort(this)">
+                  <span class="radio-text"><span class="badge badge-pg">PostgreSQL</span></span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="tgt-dbtype" value="mysql" onchange="updateTargetPort(this)">
+                  <span class="radio-text"><span class="badge badge-mysql">MySQL</span></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>IP Server</label>
+                <input type="text" id="tgt-host" placeholder="192.168.1.101" value="127.0.0.1">
+              </div>
+              <div class="form-group w-small">
+                <label>Port</label>
+                <input type="number" id="tgt-port" placeholder="5432" value="5432">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Database</label>
+              <input type="text" id="tgt-database" placeholder="hosxp_db">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="tgt-user" placeholder="postgres">
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="tgt-password" placeholder="••••••••">
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-outline" onclick="testTarget()">
+                <span class="btn-icon">🔌</span> ทดสอบ
+              </button>
+              <button class="btn btn-success" onclick="saveTarget()">
+                <span class="btn-icon">💾</span> บันทึก
+              </button>
+            </div>
+            <div id="tgt-msg" class="msg-box"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- Month Quick Select -->
+    <div class="card">
+      <div class="card-header quick-month-header">
+        <span class="card-icon">⚡</span>
+        <h2>เลือกเดือนด่วน</h2>
+      </div>
+      <div class="card-body">
+        <div class="month-group">
+          <div class="month-group-label">ปี พ.ศ. 2569</div>
+          <div class="month-btns">
+            <button class="month-btn" onclick="selectMonth('2569-05',2569,'2026-05-01','2026-05-31')">พ.ค. 2569</button>
+            <button class="month-btn" onclick="selectMonth('2569-04',2569,'2026-04-01','2026-04-30')">เม.ย. 2569</button>
+            <button class="month-btn" onclick="selectMonth('2569-03',2569,'2026-03-01','2026-03-31')">มี.ค. 2569</button>
+            <button class="month-btn" onclick="selectMonth('2569-02',2569,'2026-02-01','2026-02-28')">ก.พ. 2569</button>
+            <button class="month-btn" onclick="selectMonth('2569-01',2569,'2026-01-01','2026-01-31')">ม.ค. 2569</button>
+          </div>
+        </div>
+        <div class="month-group">
+          <div class="month-group-label">ปี พ.ศ. 2568</div>
+          <div class="month-btns">
+            <button class="month-btn" onclick="selectMonth('2568-12',2568,'2025-12-01','2025-12-31')">ธ.ค. 2568</button>
+            <button class="month-btn" onclick="selectMonth('2568-11',2568,'2025-11-01','2025-11-30')">พ.ย. 2568</button>
+            <button class="month-btn" onclick="selectMonth('2568-10',2568,'2025-10-01','2025-10-31')">ต.ค. 2568</button>
+            <button class="month-btn" onclick="selectMonth('2568-06',2568,'2025-06-01','2025-06-30')">มิ.ย. 2568</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Year Selection -->
+    <div class="card">
+      <div class="card-header transfer-header">
+        <span class="card-icon">📅</span>
+        <h2>เลือกปีที่ต้องการโอนข้อมูล (พ.ศ.)</h2>
+      </div>
+      <div class="card-body">
+        <div class="year-grid" id="yearGrid">
+          <!-- Year buttons generated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Panel (shown when year selected) -->
+    <div class="card" id="transferPanel" style="display:none">
+      <div class="card-header active-year-header">
+        <span class="card-icon">🔄</span>
+        <h2 id="transferPanelTitle">โอนข้อมูลปี พ.ศ. xxxx</h2>
+        <button class="btn-close" onclick="closeTransferPanel()">✕ ปิด</button>
+      </div>
+      <div class="card-body">
+
+        <!-- Date range -->
+        <div class="date-range-row">
+          <div class="form-group">
+            <label>วันที่เริ่มต้น</label>
+            <input type="date" id="startDate">
+          </div>
+          <div class="date-sep">ถึง</div>
+          <div class="form-group">
+            <label>วันที่สิ้นสุด</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button class="btn btn-info" onclick="showData()">
+            <span class="btn-icon">🔍</span> แสดงข้อมูล (ต้นทาง)
+          </button>
+          <button class="btn btn-warning" id="transferBtn" onclick="startTransfer()" disabled>
+            <span class="btn-icon">🚀</span> โอนข้อมูล
+          </button>
+          <button class="btn btn-success" onclick="showTransferred()">
+            <span class="btn-icon">✅</span> แสดงรายการที่โอนแล้ว (ปลายทาง)
+          </button>
+          <button class="btn btn-outline" onclick="showOtherDates()" style="border-color:#f59e0b;color:#92400e">
+            <span class="btn-icon">📋</span> ตรวจสอบ AN ที่ยังไม่ถูกโอน
+          </button>
+        </div>
+
+        <!-- Preview message -->
+        <div id="preview-msg" class="msg-box"></div>
+
+        <!-- Progress bar -->
+        <div id="progressSection" style="display:none">
+          <div class="progress-header">
+            <span id="progressLabel">กำลังโอนข้อมูล...</span>
+            <span id="progressPercent" class="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar" style="width:0%"></div>
+          </div>
+          <div class="progress-stats">
+            <span class="stat success">✅ สำเร็จ: <strong id="statSuccess">0</strong></span>
+            <span class="stat failed">❌ ล้มเหลว: <strong id="statFailed">0</strong></span>
+            <span class="stat total">📊 ทั้งหมด: <strong id="statTotal">0</strong></span>
+          </div>
+          <div id="currentRecord" class="current-record"></div>
+          <div id="errorList" class="error-list"></div>
+        </div>
+
+        <!-- Data preview table -->
+        <div id="previewTableWrap" style="display:none">
+          <div class="preview-header">
+            <h3 id="previewTitle">ข้อมูลตัวอย่าง</h3>
+            <span class="preview-note">แสดงทุกรายการ</span>
+          </div>
+          <div class="table-scroll">
+            <div class="select-toolbar" id="selectToolbar">
+              <label class="check-all-label">
+                <input type="checkbox" id="selectAllCheck" checked onchange="toggleAllRows(this.checked)">
+                เลือกทั้งหมด
+              </label>
+              <span id="selectedCount" class="selected-count">เลือก 0 รายการ</span>
+            </div>
+            <table class="data-table" id="previewTable">
+              <thead id="previewHead">
+                <tr>
+                  <th style="width:44px"><input type="checkbox" id="selectAllCheck2" checked onchange="toggleAllRows(this.checked)"></th>
+                  <th>#</th>
+                  <th>HN</th>
+                  <th>AN</th>
+                  <th>วันที่-เวลาสแกน</th>
+                  <th>หน้า</th>
+                  <th>รูปภาพ</th>
+                  <th>ประเภท</th>
+                  <th>Doc Type</th>
+                  <th>เจ้าหน้าที่</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="previewBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- Log Viewer -->
+  <div class="container" style="padding-top:0">
+    <div class="card">
+      <div class="card-header log-header" onclick="toggleLogViewer()" style="cursor:pointer">
+        <span class="card-icon">📋</span>
+        <h2>ประวัติการโอนข้อมูล (Log)</h2>
+        <button class="btn-toggle" id="logToggle">▼ แสดง</button>
+      </div>
+      <div class="card-body" id="logBody" style="display:none">
+        <div class="btn-row" style="margin-top:0;margin-bottom:16px">
+          <button class="btn btn-outline btn-sm" onclick="loadLogs()">🔄 รีเฟรช</button>
+          <button class="btn btn-outline btn-sm danger" onclick="clearAllLogs()">🗑️ ลบ log ทั้งหมด</button>
+        </div>
+        <div id="logList"><p style="color:#94a3b8">กดรีเฟรชเพื่อโหลด log</p></div>
+
+        <!-- Log detail modal -->
+        <div id="logDetail" style="display:none;margin-top:20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <h3 id="logDetailTitle" style="font-size:16px;color:#374151"></h3>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('logDetail').style.display='none'">✕ ปิด</button>
+            <a id="logDownloadBtn" href="#" class="btn btn-outline btn-sm" download>⬇️ ดาวน์โหลด</a>
+          </div>
+          <div class="log-summary" id="logSummary"></div>
+          <div id="logErrors"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>PDF → JPEG Migration Tool (IPD) | Port 3004</p>
+  </footer>
+
+  <script src="app-ipd.js"></script>
+</body>
+</html>
